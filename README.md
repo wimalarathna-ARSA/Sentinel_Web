@@ -18,21 +18,28 @@ website/
 
 ## Run it
 
-No build step, no dependencies, no `npm install`.
+The static site has no build step. The contact API requires the Node dependency and Gmail
+settings below.
 
 ```powershell
 cd website
-python -m http.server 4321
+npm install
+copy .env.example .env
+# Set CONTACT_EMAIL_USER and CONTACT_EMAIL_PASS in .env, then:
+npm run local
 # → http://127.0.0.1:4321
 ```
 
 ## Deploy
 
-Zero configuration on Vercel, Netlify or GitHub Pages — the folder root **is** the site root.
+The Vercel project root must be the `website/` directory. Vercel serves the static site
+and deploys `api/contact.js` as a serverless function; no build command or output directory
+is needed.
 
-- **Vercel** — import the repo, set *Root Directory* to `website*. `vercel.json` is already there.
-- **Netlify** — drag the `website` folder into the deploy dropzone.
-- **GitHub Pages** — push `website/` and enable Pages on that folder.
+- **Vercel** — import the repo, set **Root Directory** to `website`, then add the two
+   environment variables described below and redeploy.
+- **Netlify** and **GitHub Pages** can host the static files, but the contact API will not
+   work there without adapting the serverless function for that platform.
 
 ## Sections (same order as the reference site)
 
@@ -61,9 +68,8 @@ Full per-project LOPO tables were in an earlier revision; the source CSVs are
    blocks (2 supervisors + 4 members) and delete the `.inst` note that says so.
 2. **Contact form.** The form POSTs to `/api/contact`, a Vercel serverless function
    (`website/api/contact.js`) that delivers mail through Gmail SMTP (nodemailer).
-   The message is sent **to the email address the visitor typed into the form**
-   (a confirmation copy), sent from the site Gmail account, with Reply-To set to
-   the site inbox so any reply lands with the team.
+   The message is sent **to the site Gmail account** configured in `CONTACT_EMAIL_USER`;
+   the visitor's submitted address is used as Reply-To so the team can respond directly.
    To activate it after deploying on Vercel:
    1. `npm install` inside `website/` (installs `nodemailer` — already declared in `package.json`).
       Vercel does this automatically on deploy; you only need it for local testing.
@@ -71,9 +77,9 @@ Full per-project LOPO tables were in an earlier revision; the source CSVs are
       - `CONTACT_EMAIL_USER` = `chamilasewmini2@gmail.com`
       - `CONTACT_EMAIL_PASS` = the 16-letter Gmail **app password**
         (Google Account → Security → 2-Step Verification → App passwords)
-   3. Redeploy. Test by submitting the form — a copy of the message lands in the
-      visitor's inbox with subject `[Website] …`.
-   Notes: the password lives ONLY in Vercel env settings, never in the repo.
+   3. Redeploy. Test by submitting the form — the message lands in the configured
+      team inbox with subject `[Website] …`.
+   Notes: the password lives only in Vercel environment settings or a local ignored `.env`, never in Git.
    On a plain static preview (`python http.server`) `/api/contact` doesn't exist and the
    form shows a direct-email notice instead — that is expected.
 
@@ -89,9 +95,8 @@ copy .env.example .env       # then put the real Gmail app password in .env
 npm run local                # serves http://127.0.0.1:4321 + POST /api/contact
 ```
 
-Open the page, submit the form, and a copy lands in the visitor's inbox.
-**Delete `.env` afterwards** (or never upload it) — on Vercel the same values
-come from Project → Settings → Environment Variables.
+Open the page and submit the form; the message lands in `CONTACT_EMAIL_USER`, with the
+visitor's address set as Reply-To. Never commit `.env`.
 
 ## Deploy checklist (Vercel) — read this if the form says "Failed to fetch"
 

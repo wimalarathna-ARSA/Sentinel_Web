@@ -3,6 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "description": "Sentinel AIOps project website with contact-form API",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "local": "node local-api.js"
   },

@@ -1,10 +1,8 @@
 // Vercel serverless function: POST /api/contact
 // Sends the Contact Us form through Gmail SMTP (nodemailer).
 //
-// Delivery rule: the message is sent TO the email address the visitor typed
-// into the form (a confirmation copy of their own message), sent FROM the
-// site Gmail account. Reply-To points at the site inbox so any reply from
-// the visitor lands with the team.
+// Delivery rule: messages go to the site Gmail account. Reply-To is the
+// visitor's address so the team can respond directly.
 //
 // REQUIRED Vercel environment variables (Project → Settings → Environment Variables):
 //   CONTACT_EMAIL_USER  = Gmail address that sends the mail  (e.g. chamilasewmini2@gmail.com)
@@ -56,9 +54,6 @@ module.exports = async function handler(req, res) {
       .json({ ok: false, error: "Mail service is not configured yet." });
   }
 
-  // Recipient = whatever email the visitor entered in the form.
-  const to = email;
-
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -69,19 +64,14 @@ module.exports = async function handler(req, res) {
 
     await transporter.sendMail({
       from: `"Sentinel AIOps Website" <${user}>`,
-      to,
-      replyTo: user,
+      to: user,
+      replyTo: email,
       subject: `[Website] ${subject}`,
       text:
-        `Hi ${firstName},\n\n` +
-        `Thank you for contacting Sentinel AIOps. Here is a copy of the message you sent us:\n` +
-        `--------------------------------------------------------\n` +
-        `Name   : ${firstName} ${lastName}\n` +
-        `Email  : ${email}\n` +
+        `New contact form message from ${firstName} ${lastName}.\n\n` +
+        `Email: ${email}\n` +
         `Subject: ${subject}\n\n` +
-        `${message}\n` +
-        `--------------------------------------------------------\n` +
-        `We will get back to you at this email address shortly.\n`,
+        `${message}\n`,
     });
 
     return res.status(200).json({ ok: true });
