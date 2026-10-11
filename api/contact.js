@@ -64,7 +64,7 @@ module.exports = async function handler(req, res) {
 
     await transporter.sendMail({
       from: `"Sentinel AIOps Website" <${user}>`,
-      to: user,
+      to: [user, email],
       replyTo: email,
       subject: `[Website] ${subject}`,
       text:
